@@ -1,0 +1,23 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'expo-module-gradle-plugin'
+
+android {
+    namespace "dev.chelly.execbridge"
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+        externalNativeBuild {
+            cmake { cppFlags "" }
+        }
+    }
+
+    externalNativeBuild {
+        cmake { path "CMakeLists.txt" }
+    }
+}
+
+dependencies {
+    implementation project(':expo-modules-core')
+}
