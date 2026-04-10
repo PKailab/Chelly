@@ -15,8 +15,9 @@ const config: ExpoConfig = {
       backgroundColor: "#000000",
     },
     package: "dev.chelly.app",
+    permissions: ["android.permission.RECORD_AUDIO"],
   },
-  plugins: ["expo-secure-store", "expo-router", "./modules/exec-bridge"],
+  plugins: ["expo-secure-store", "expo-router", "./modules/exec-bridge", "./modules/voice-input"],
 };
 
 export default config;
