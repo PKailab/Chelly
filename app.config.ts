@@ -16,7 +16,7 @@ const config: ExpoConfig = {
     },
     package: "dev.chelly.app",
   },
-  plugins: ["expo-secure-store", "expo-router"],
+  plugins: ["expo-secure-store", "expo-router", "./modules/exec-bridge"],
 };
 
 export default config;
