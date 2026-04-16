@@ -16,14 +16,27 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: 3. Make Gradlew Executable
-        run: chmod +x gradlew
+      - name: 3. Smart Search & Build
+        # इस एक स्टेप में हम gradlew को ढूंढेंगे और वहीं पर बिल्ड शुरू कर देंगे
+        run: |
+          echo "🔎 Searching for gradlew..."
+          GRADLEW_FILE=$(find . -name gradlew -print -quit)
+          
+          if [ -z "$GRADLEW_FILE" ]; then
+            echo "❌ Error: gradlew file not found anywhere!"
+            exit 1
+          fi
+          
+          GRADLE_DIR=$(dirname "$GRADLEW_FILE")
+          echo "📂 Moving to $GRADLE_DIR and starting build..."
+          
+          cd "$GRADLE_DIR"
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
 
-      - name: 4. Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: 5. Upload APK
+      - name: 4. Upload Built APK
         uses: actions/upload-artifact@v4
         with:
-          name: Chelly-Application
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Chelly-Official-App
+          # यह फोल्डर की गहराई को इग्नोर करके जहां भी APK बनी है उसे उठा लेगा
+          path: "**/*/build/outputs/apk/debug/*.apk"
