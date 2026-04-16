@@ -1,4 +1,4 @@
-name: Force Build Android APK
+name: Build Chelly Expo APK
 on:
   workflow_dispatch:
 
@@ -9,34 +9,33 @@ jobs:
       - name: 1. Checkout Code
         uses: actions/checkout@v4
 
-      - name: 2. Setup Java JDK 17
+      - name: 2. Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Setup PNPM (यह प्रोजेक्ट PNPM इस्तेमाल करता है)
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: 4. Install Dependencies
+        run: pnpm install
+
+      - name: 5. Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
 
-      - name: 3. Diagnostics & Setup Gradle
-        # यहाँ हम देखेंगे कि फाइल्स कहाँ हैं और जरूरत पड़ने पर gradlew बनाएंगे
-        run: |
-          echo "📁 Listing root files:"
-          ls -F
-          
-          # अगर gradlew गायब है तो इसे कमांड से जनरेट करें
-          if [ ! -f "gradlew" ]; then
-             echo "⚠️ Gradlew missing! Generating new gradle wrapper..."
-             gradle wrapper
-          fi
-          
-          chmod +x gradlew
-          echo "✅ Gradle is ready."
+      - name: 6. Generate Android Magic Folder (Prebuild)
+        run: npx expo prebuild --platform android --clean
 
-      - name: 4. Build Android APK
-        # यह कमांड अब सीधे ग्रेडल का इस्तेमाल करेगी
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
+      - name: 7. Build the Final APK
+        run: cd android && ./gradlew assembleDebug --no-daemon
 
-      - name: 5. Upload APK
+      - name: 8. Upload Application APK
         uses: actions/upload-artifact@v4
         with:
-          name: Chelly-Final-APK
+          name: Chelly-Ready-To-Use
           path: "**/*.apk"
