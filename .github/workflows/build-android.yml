@@ -1,44 +1,47 @@
-name: Build Android
-
+name: Build Android APK
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 1. Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: 2. Setup Node.js (Latest)
+        uses: actions/setup-node@v4
         with:
-          version: 9
+          node-version: '22' # नई चेतावनियों को हटाने के लिए अपडेट किया गया
 
-      - uses: actions/setup-node@v4
+      - name: 3. Setup Java (JDK 17)
+        uses: actions/setup-java@v4
         with:
-          node-version: 20
-          cache: pnpm
+          java-version: '17'
+          distribution: 'zulu'
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: 4. Install Project Dependencies
+        run: |
+          npm install -g yarn
+          yarn install --network-timeout 100000
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
+      - name: 5. Generate Android Folder (अगर गायब है)
+        run: |
+          npx expo prebuild --platform android --no-install || echo "Prebuild step skipped or native files exist"
 
-      - name: Setup Expo
-        run: npx expo prebuild --platform android --no-install
+      - name: 6. Make Gradlew Executable
+        run: |
+          if [ -f android/gradlew ]; then
+            chmod +x android/gradlew
+          else
+            echo "Error: android/gradlew not found!" && exit 1
+          fi
 
-      - name: Build APK
-        working-directory: android
-        run: ./gradlew :app:assembleRelease
+      - name: 7. Build APK with Log
+        run: cd android && ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: 8. Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: chelly-release
-          path: android/app/build/outputs/apk/release/*.apk
+          name: Chelly-Master-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
