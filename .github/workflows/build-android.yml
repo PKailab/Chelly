@@ -14,13 +14,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 3. Setup PNPM (यह प्रोजेक्ट PNPM इस्तेमाल करता है)
+      - name: 3. Setup PNPM
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: 4. Install Dependencies
-        run: pnpm install
+      - name: 4. Force Flat Node Modules & Install (द अल्टीमेट फिक्स)
+        # यह कमांड PNPM के शॉर्टकट वाले नखरे बंद कर देगी और Expo को खुश कर देगी
+        run: |
+          echo "node-linker=hoisted" > .npmrc
+          pnpm install
 
       - name: 5. Setup Java JDK 17
         uses: actions/setup-java@v4
@@ -28,7 +31,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 6. Generate Android Magic Folder (Prebuild)
+      - name: 6. Generate Android Folders (Prebuild)
         run: npx expo prebuild --platform android --clean
 
       - name: 7. Build the Final APK
