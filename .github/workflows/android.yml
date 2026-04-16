@@ -1,4 +1,4 @@
-name: Build Android Master APK
+name: Build Chelly Official APK
 on:
   workflow_dispatch:
 
@@ -6,50 +6,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout Code
+      - name: 1. Code Download
         uses: actions/checkout@v4
 
-      - name: 2. Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: 3. Setup Java (JDK 17)
+      - name: 2. Java Setup
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: 4. Install Dependencies
-        run: |
-          npm install -g yarn
-          yarn install
+      - name: 3. Make Gradlew Work
+        run: chmod +x gradlew
 
-      - name: 5. Force Generate Android Folder (Smart Hack)
-        run: |
-          # यह कमांड ऐप को एक फेक आईडी देगी ताकि फोल्डर जनरेट हो सके
-          npx expo prebuild --platform android --no-install --identifier com.master.mathapp
+      - name: 4. Build Master APK
+        # यहाँ हमने 'cd android' हटा दिया है, क्योंकि gradlew रूट में है
+        run: ./gradlew assembleDebug --stacktrace
 
-      - name: 6. Check if folder created
-        run: |
-          ls -R android || echo "Folder NOT found again!"
-
-      - name: 7. Make Gradlew Executable
-        run: |
-          if [ -f android/gradlew ]; then
-            chmod +x android/gradlew
-          else
-            echo "Searching for gradlew anywhere..."
-            find . -name gradlew
-            exit 1
-          fi
-
-      - name: 8. Build Debug APK
-        run: |
-          cd android && ./gradlew assembleDebug --no-daemon
-
-      - name: 9. Upload Final APK
+      - name: 5. Final Download Link
         uses: actions/upload-artifact@v4
         with:
-          name: App-Ready-to-Install
-          path: "**/*.apk"
+          name: Chelly-Final-App
+          # Chelly में APK आमतौर पर यहाँ बनती है:
+          path: app/build/outputs/apk/debug/*.apk
