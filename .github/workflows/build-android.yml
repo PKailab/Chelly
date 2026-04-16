@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Force Build Android APK
 on:
   workflow_dispatch:
 
@@ -16,27 +16,27 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: 3. Smart Search & Build
-        # इस एक स्टेप में हम gradlew को ढूंढेंगे और वहीं पर बिल्ड शुरू कर देंगे
+      - name: 3. Diagnostics & Setup Gradle
+        # यहाँ हम देखेंगे कि फाइल्स कहाँ हैं और जरूरत पड़ने पर gradlew बनाएंगे
         run: |
-          echo "🔎 Searching for gradlew..."
-          GRADLEW_FILE=$(find . -name gradlew -print -quit)
+          echo "📁 Listing root files:"
+          ls -F
           
-          if [ -z "$GRADLEW_FILE" ]; then
-            echo "❌ Error: gradlew file not found anywhere!"
-            exit 1
+          # अगर gradlew गायब है तो इसे कमांड से जनरेट करें
+          if [ ! -f "gradlew" ]; then
+             echo "⚠️ Gradlew missing! Generating new gradle wrapper..."
+             gradle wrapper
           fi
           
-          GRADLE_DIR=$(dirname "$GRADLEW_FILE")
-          echo "📂 Moving to $GRADLE_DIR and starting build..."
-          
-          cd "$GRADLE_DIR"
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          echo "✅ Gradle is ready."
 
-      - name: 4. Upload Built APK
+      - name: 4. Build Android APK
+        # यह कमांड अब सीधे ग्रेडल का इस्तेमाल करेगी
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: 5. Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Chelly-Official-App
-          # यह फोल्डर की गहराई को इग्नोर करके जहां भी APK बनी है उसे उठा लेगा
-          path: "**/*/build/outputs/apk/debug/*.apk"
+          name: Chelly-Final-APK
+          path: "**/*.apk"
